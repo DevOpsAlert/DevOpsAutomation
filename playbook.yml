@@ -1,0 +1,85 @@
+---
+- name: Настройка Ubuntu Server
+  hosts: managed
+  become: yes
+
+  vars:
+    admin_user: "devopsadmin"
+    admin_password: "SecureP@ss123!"
+
+  tasks:
+
+    - name: Обновление кэша пакетов APT
+      apt:
+        update_cache: yes
+
+    - name: Установка системных пакетов
+      apt:
+        name:
+          - curl
+          - git
+          - ufw
+          - fail2ban
+          - python3-pip
+        state: present
+
+    - name: Установка Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Установка Docker SDK для Python
+      pip:
+        name: docker
+        state: present
+
+    - name: Запуск и автозагрузка Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Запуск Nginx в Docker контейнере
+      docker_container:
+        name: nginx
+        image: nginx
+        state: started
+        restart_policy: always
+        ports:
+          - "80:80"
+
+    - name: Настройка UFW - разрешить SSH
+      ufw:
+        rule: allow
+        port: "22"
+        proto: tcp
+
+    - name: Настройка UFW - разрешить HTTP
+      ufw:
+        rule: allow
+        port: "80"
+        proto: tcp
+
+    - name: Настройка UFW - разрешить HTTPS
+      ufw:
+        rule: allow
+        port: "443"
+        proto: tcp
+
+    - name: Включение UFW
+      ufw:
+        state: enabled
+
+    - name: Запуск и автозагрузка fail2ban
+      systemd:
+        name: fail2ban
+        state: started
+        enabled: yes
+
+    - name: Создание пользователя-администратора
+      user:
+        name: "{{ admin_user }}"
+        password: "{{ admin_password | password_hash('sha512') }}"
+        groups: sudo
+        shell: /bin/bash
+        state: present
