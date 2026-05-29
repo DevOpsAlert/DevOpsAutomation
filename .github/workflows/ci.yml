@@ -12,24 +12,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Получение кода
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Установка shellcheck
         run: sudo apt-get install -y shellcheck
 
       - name: Проверка синтаксиса Bash скриптов
         run: |
-          shellcheck backup_home.sh
-          shellcheck check_resources.sh
-          shellcheck ssh_hardening.sh
-          shellcheck update_system.sh
+          shellcheck --severity=error backup_home.sh
+          shellcheck --severity=error check_resources.sh
+          shellcheck --severity=error ssh_hardening.sh
+          shellcheck --severity=error update_system.sh
 
   check-powershell:
     name: Проверка PowerShell скриптов
     runs-on: windows-latest
     steps:
       - name: Получение кода
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Установка PSScriptAnalyzer
         run: Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
@@ -44,10 +44,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Получение кода
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Установка ansible-lint
-        run: pip install ansible-lint
+      - name: Установка ansible и коллекций
+        run: |
+          pip install ansible ansible-lint
+          ansible-galaxy collection install community.general community.docker
 
       - name: Проверка Ansible плейбука
         run: ansible-lint playbook.yml
