@@ -1,0 +1,53 @@
+name: DevOpsAlert CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  check-bash:
+    name: Проверка Bash скриптов
+    runs-on: ubuntu-latest
+    steps:
+      - name: Получение кода
+        uses: actions/checkout@v3
+
+      - name: Установка shellcheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Проверка синтаксиса Bash скриптов
+        run: |
+          shellcheck backup_home.sh
+          shellcheck check_resources.sh
+          shellcheck ssh_hardening.sh
+          shellcheck update_system.sh
+
+  check-powershell:
+    name: Проверка PowerShell скриптов
+    runs-on: windows-latest
+    steps:
+      - name: Получение кода
+        uses: actions/checkout@v3
+
+      - name: Установка PSScriptAnalyzer
+        run: Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+
+      - name: Проверка PowerShell скриптов
+        run: |
+          Invoke-ScriptAnalyzer -Path create_user.ps1 -Severity Error
+          Invoke-ScriptAnalyzer -Path service_check.ps1 -Severity Error
+
+  check-ansible:
+    name: Проверка Ansible плейбука
+    runs-on: ubuntu-latest
+    steps:
+      - name: Получение кода
+        uses: actions/checkout@v3
+
+      - name: Установка ansible-lint
+        run: pip install ansible-lint
+
+      - name: Проверка Ansible плейбука
+        run: ansible-lint playbook.yml
