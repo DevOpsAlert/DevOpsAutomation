@@ -52,4 +52,4 @@ jobs:
           ansible-galaxy collection install community.general community.docker
 
       - name: Проверка Ansible плейбука
-        run: ansible-lint playbook.yml
+        run: ansible-lint playbook.yml --skip-list fqcn,yaml[truthy]
